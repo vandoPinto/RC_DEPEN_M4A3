@@ -1,0 +1,155 @@
+<style>
+    li {
+        margin-bottom: 12px;
+        margin-left: 18px;
+    }
+
+    .questao:hover {
+        background-color: #836bff;
+        cursor: pointer;
+    }
+
+    .marcado {
+        background-color: #836bff;
+    }
+
+    .submeter {
+        margin: 1em auto;
+        font-weight: bold;
+        color: #ffffff;
+        border-radius: 3px;
+        background-color: #836bff;
+        border: solid 0 transparent;
+        outline: none;
+        box-shadow: 0 .1em rgba(0, 0, 0, .5);
+        padding: .5em;
+        display: block;
+        width: 50%;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .feed {
+        position: relative;
+        width: 270px;
+        height: 125px;
+        background-color: #836bff;
+        border-radius: 10px;
+        flex-wrap: nowrap;
+        cursor: pointer;
+    }
+</style>
+<div style="height: 72px; width: 100%; background-color: #836bff; ">
+    <div style="background-color: white; width: 17px; height: 66px; margin-left: 19px; display: flex;"> <img
+            style="height: 43.5px; width:180px; margin-top: 12.8px; margin-left: 68.45px;"
+            src="recursos/imgs/SI_H1.png">
+        <img style="height: 73px; margin-left:170.85px;" src="recursos/imgs/SI_H2.png"> <img
+            style="height: 46.8px; width:56.75px;  position: absolute; right: 1px;" src="recursos/imgs/SI_H3.png">
+    </div>
+    <div class="coluna-esquerda largura-1_3">
+        <img class="animate__animated animate__flipInX"
+            style="height: 219.4px; width: 241.85px; margin-top: 80.65px; margin-left: 35px;"
+            src="recursos/imgs/SI_listras.png">
+    </div>
+    <div class="coluna-direita largura-2_1" style="width: 500px;height: 500px;margin-top: 110px;margin-right: 45px;">
+        <h1>Questão 3</h1>
+        <p><strong>“A maioria das pessoas com sofrimento mental no sistema prisional é acolhida e, raramente,
+                estigmatizada e rotulada como
+                ‘preguiçosas’.”
+            </strong>
+        </p>
+        <p class="questao" id="opc_e">a) Verdadeiro</p>
+        <p class="questao" id="opc_c">b) Falso</p>
+        <div class="submeter" style="display: none;">Submeter</div>
+        <div style="margin-top: -160px; width: 500px; height: 230px; display: none;" class="feed" id="feedCerto">
+            <img style="height: 70px; margin-top: -48px; margin-left: 30px;margin-bottom: 15px;"
+                src="recursos/imgs/SI_CE.png">
+            <h2 style="margin-left: 30px; color: #fac900;">Resposta correta</h2>
+            <p style="margin-left: 30px; width: 450px; color: white;">Você acertou! É comum que as pessoas que
+                apresentem sofrimento mental, inclusive aqueles relacionados ao consumo de
+                álcool e outras drogas, sejam, muitas vezes, incompreendidas, julgadas, excluídas e até mesmo
+                marginalizadas, devido a
+                falsos conceitos ou preconceitos. Esses mitos, aliados à discriminação, aumentam os sintomas do
+                problema e, em muitas
+                ocasiões, podem levar até ao suicídio. Mesmo nos casos mais graves, é possível controlar e reduzir o
+                sofrimento por meio
+                de medidas de reabilitação e tratamentos específicos. Semelhante a qualquer agravo, a recuperação e
+                controle de
+                transtornos mentais são mais efetivos e rápidos quanto mais precocemente o diagnóstico, tratamento e
+                acompanhamento
+                forem iniciados.
+            </p>
+        </div>
+        <div style="margin-top: -190px; width: 500px; height: 240px; display: none;" class="feed" id="feedErrado">
+            <img style="height: 70px; margin-top: -48px; margin-left: 30px;margin-bottom: 15px;"
+                src="recursos/imgs/SI_CE.png">
+            <h2 style="margin-left: 30px; color: #fac900;">Resposta incorreta</h2>
+            <p style="margin-left: 30px; width: 450px; color: white;">A afirmativa está incorreta. É comum que as
+                pessoas que apresentem sofrimento mental, inclusive aqueles relacionados ao
+                consumo de álcool e outras drogas, sejam, muitas vezes, incompreendidas, julgadas, excluídas e até
+                mesmo marginalizadas,
+                devido a falsos conceitos ou preconceitos. Esses mitos, aliados à discriminação, aumentam os
+                sintomas do problema e, em
+                muitas ocasiões, podem levar até ao suicídio. Mesmo nos casos mais graves, é possível controlar e
+                reduzir o sofrimento
+                por meio de medidas de reabilitação e tratamentos específicos. Semelhante a qualquer agravo, a
+                recuperação e controle de
+                transtornos mentais são mais efetivos e rápidos quanto mais precocemente o diagnóstico, tratamento e
+                acompanhamento
+                forem iniciados.
+            </p>
+        </div>
+    </div>
+</div>
+<footer style="height: 39.05px; width: 100%; background-color: #836bff;">
+    <img style="height: 29px;margin: 6.5px 37.05px;" src="recursos/imgs/SI_F1.png">
+    <img style="height: 27px;margin: 8.5px 37.05px;position: absolute;right: 0px;" src="recursos/imgs/SI_F2.png">
+</footer>
+
+<script>
+    $(() => {
+        let resposta = '';
+        let mostrarSub = true;
+        let feedCerto = $(document).find('[id^=feedCerto]').hide();
+        let feedErrado = $(document).find('[id^=feedErrado]').hide();
+        let submeter = $(document).find('[class=submeter]').hide();
+
+        $(feedCerto).on('click', apagarFeeds);
+        $(feedErrado).on('click', apagarFeeds);
+
+        function apagarFeeds() {
+            feedCerto.fadeOut();
+            feedErrado.fadeOut();
+        }
+
+        function desmarcarTudo() {
+            let questao = $(document).find('[id^=opc]').map((index, sel) => {
+                $(sel).removeClass("marcado");
+            })
+        }
+
+        let questao = $(document).find('[id^=opc]').map((index, sel) => {
+            $(sel).click(() => {
+                console.log(sel.id);
+                resposta = sel.id;
+                if (mostrarSub) {
+                    submeter.fadeIn();
+                }
+                desmarcarTudo();
+                $(sel).addClass("marcado");
+            })
+        })
+
+        $(submeter).on('click', () => {
+            console.log("clicou " + resposta.split("_")[1]);
+            if (resposta.split("_")[1] == "c") {
+                $(feedCerto).fadeIn();
+                pontos += 1;
+                mostrarSub = false;
+                submeter.hide();
+            } else {
+                $(feedErrado).fadeIn();
+            }
+        })
+    })
+</script>

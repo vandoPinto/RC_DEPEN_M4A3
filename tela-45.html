@@ -1,0 +1,100 @@
+<style>
+    li {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+</style>
+<div style="height: 72px; width: 100%; background-color: #836bff; ">
+    <div style="background-color: white; width: 17px; height: 66px; margin-left: 19px; display: flex;"><img
+            style="height: 43.5px; width:180px; margin-top: 12.8px; margin-left: 68.45px;"
+            src="recursos/imgs/SI_H1.png"><img style="height: 73.05px; width:108.45px; margin-left:170.85px;"
+            src="recursos/imgs/SI_H2.png"><img style="height: 46.8px; width:56.75px;  position: absolute; right: 1px;"
+            src="recursos/imgs/SI_H3.png">
+    </div>
+</div>
+<p style="margin-top: 80px;text-align: center;"><b style="color: #836bff;">Clique</b> nas sanfonas para conhecer
+    três experiências exitosas de atenção a essas mudanças mencionadas.</p>
+<img src="recursos/imgs/SI_45a.png" style="margin-left: 100px;margin-top: 20px;width: 690px;cursor: pointer;"
+    class="btn animate__animated animate__backInRight" id="botao_1">
+<img src="recursos/imgs/SI_45b.png" style="margin-left: 100px;margin-top: 10px;width: 690px;cursor: pointer;"
+    class="btn animate__animated animate__backInLeft" id="botao_2">
+<img src="recursos/imgs/SI_45c.png" style="margin-left: 100px;margin-top: 10px;width: 690px;cursor: pointer;"
+    class="btn animate__animated animate__backInLeft" id="botao_3">
+<div>
+    <div id="janela_1"
+        style="position: absolute; width: 501px; height: 140px; background-color: rgb(131, 107, 255); border-radius: 10px; flex-wrap: nowrap; margin-left: 205px; margin-top: -254px; cursor: pointer; display: none;">
+        <div>
+            <div style="margin-top: 10px;padding-left: 50px;color: white;">
+                <h1 style="font-size: 15px;color: #fac900;">Programa de Atenção Integral ao Louco Infrator (PAI-LI)
+                </h1>
+                <ul>
+                    <li>243 pacientes em 77 municípios goianos.</li>
+                    <li>Promove a adesão do círculo sociofamiliar do paciente judiciário, trabalhando junto à
+                        família para estabelecimento de
+                        vínculos para retorno ao lar e articulando com as unidades de saúde a assistência integral à
+                        PPL.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="janela_2"
+        style="position: absolute; width: 570px; height: 170px; background-color: rgb(131, 107, 255); border-radius: 10px; flex-wrap: nowrap; margin-left: 175px; margin-top: -214px; cursor: pointer; display: none;">
+        <div>
+            <div style="margin-top: 10px;width: 490px;padding-left: 50px;color: white;">
+                <h1 style="font-size: 15px;color: #fac900;">Programa de Atenção Integral ao Paciente Judiciário
+                    (PAI-PJ)</h1>
+                <ul>
+                    <li>Programa do Tribunal de Justiça de Minas Gerais, o qual realiza acompanhamento do portador
+                        de sofrimento mental que
+                        cometeu algum crime.</li>
+                    <li>Faz acompanhamento dos processos judiciais com indicativos de incidente de insanidade
+                        mental, ou já sentenciados com
+                        medida de segurança, bem como outros tipos de processo, em que a autoridade judicial julgue
+                        importante a inclusão do
+                        réu/sentenciado na metodologia do PAI-PJ, auxiliando o Juiz na aplicação e execução da
+                        sentença e na promoção da
+                        inserção social do sentenciado.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="janela_3"
+        style="position: absolute;width: 512px;height: 170px;background-color: rgb(131, 107, 255);border-radius: 10px;flex-wrap: nowrap;margin-left: 195px;margin-top: -184px;cursor: pointer;">
+        <div>
+            <div style="margin-top: 10px;width: 470px;padding-left: 50px;color: white;">
+                <h1 style="font-size: 15px;color: #fac900;">Curso de Capacitação em Saúde Mental</h1>
+                <ul>
+                    <li>Curso oferecido em setembro de 2020 pelo Ministério da Justiça e Segurança Pública voltado
+                        para saúde mental de agentes
+                        de segurança pública.</li>
+                    <li>O material programático contém os seguintes módulos: Saúde Mental e Qualidade de Vida;
+                        Principais Conceitos da Saúde
+                        Mental: do normal ao patológico; Riscos e Agravos da Saúde do Agente de Segurança Pública;
+                        Principais Sintomas do
+                        Adoecimento; O suicídio e prevenção; e Promoção e Tratamento da Saúde Mental.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<footer style="height: 39.05px; width: 100%; background-color: #836bff;"><img
+        style="height: 22.65px; margin: 8.5px 37.05px;" src="recursos/imgs/SI_F1.png"><img
+        style="height: 22.75px; margin: 8.5px 37.05px; position: absolute; right: 0px;" src="recursos/imgs/SI_F2.png">
+</footer>
+<script>
+    $(() => {
+        let janelas = $(document).find('[id^=janela]').css('cursor', 'pointer').on("click", apagarJanelas);
+        apagarJanelas();
+        let botoes = $(document).find('[id^=botao]').map((index, botao) => {
+            $(botao).click(() => {
+                apagarJanelas();
+                $(janelas[index]).fadeIn();
+            })
+        })
+        function apagarJanelas() {
+            janelas.map((index, janela) => {
+                $(janela).hide();
+            })
+        }
+    })
+</script>

@@ -1,0 +1,691 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Quiz</title>
+    <script src="js/vendor/jquery-3.1.1.min.js"></script>
+
+    <link rel="stylesheet" href="https://efg.brasilia.fiocruz.br/ava/external/quizy/css/quizyfillblank.css">
+
+    <script>
+        var questaoAtual = 0;
+        var pontuacao = 0;
+        var total;
+        var arr_escolhas = [];
+        $(document).ready(function () {
+            var elements = parent.document.getElementsByClassName("nav-telas-proxima");
+            for (var i = 0, length = elements.length; i < length; i++) {
+                elements[i].style.display = 'none';
+            }
+            total = $("section:not([id='resultados'])").length;
+            $(".feedback div").hide();
+            $(".me_feedback").hide(); //feedbacks nultipla escolha para multiplos feedbacks
+            $(".vf_feedback").hide(); //feedbacks in line do VF
+            $('input[type="radio"]:checked').prop("checked", false);
+            $("section:not([id='resultados'])").each(function (indexQuestao, questao) {
+                $(questao).attr("id", "q" + indexQuestao);
+                $(questao).prepend("<h2>Questão " + (indexQuestao + 1) /*+ " de " + total + "</h2>"*/);
+                $(questao).find("form input[type='button']").attr("id", "q" + indexQuestao + "verificar");
+                $(questao).find("form input[type='radio']").each(function (indexOpcao, opcao) {
+                    $(opcao).attr("id", "q" + indexQuestao + "-" + indexOpcao);
+                });
+                $(questao).find("form input[type='checkbox']").each(function (indexOpcao, opcao) {
+                    $(opcao).attr("id", "q" + indexQuestao + "-" + indexOpcao);
+                });
+                $(questao).find("form label").each(function (indexOpcaoTexto, opcaoTexto) {
+                    $(opcaoTexto).attr("for", "q" + indexQuestao + "-" + indexOpcaoTexto);
+                });
+                $(questao).find("form input[type='button']").each(function (indexBotao, botao) {
+                    $(botao).click(function () {
+                        verificarResposta("q" + indexQuestao);
+                    });
+                });
+                $(questao).find(".me_feedback").append("<div class='fechar-feedback' title='Fechar'>&times;</div>");
+                $(questao).find(".me_feedback").each(function (indexFeedback, feedbackDiv) {
+                    $(feedbackDiv).attr("id", "fb-q" + indexQuestao + "-" + indexFeedback);
+                    $(feedbackDiv).find(".fechar-feedback").click(function () {
+                        $("#fb-q" + indexQuestao + "-" + indexFeedback).slideUp("slow");
+                    })
+                })
+                if (indexQuestao > 0) $(questao).hide();
+            });
+            $("#resultados").hide();
+            $("#selecione-opcao").hide();
+            $("#refazer-exercicio").click(function () {
+                location.reload();
+            })
+        });
+
+        function verificarResposta(questao) {
+            var opcaoCorreta = $("#" + questao + " form input[type='hidden']").val();
+            if (opcaoCorreta.indexOf("-") > 0) { // verifica se é verdadeiro ou falso
+
+                var arr_escolhas = [];
+                var qtd_opt = 0;
+                var pt = 0;
+                var arr_gabarito = opcaoCorreta.split('-');
+                var opcaoSelecionada = $("#" + questao + " form input[name='opcao']").each(function () {
+                    arr_escolhas.push($(this).val().toUpperCase());
+                });
+                $("#" + questao + " form input[name='opcao']").each(function () {
+                    if (arr_escolhas[qtd_opt] == arr_gabarito[qtd_opt]) { // acertou
+                        pt++;
+                        $(this).next("label").next("div").addClass("vf_correta").show('slow');
+                    } else { //errrooooooooooouu
+                        $(this).next("label").next("div").addClass("vf_incorreta").show('slow');
+                    }
+                    qtd_opt++;
+
+                });
+                var percent = pt / qtd_opt;
+                pontuacao = pontuacao + percent;
+                exibirFeedback(questao, opcaoSelecionada);
+            } else if (opcaoCorreta.indexOf(",") > 0) { // Verifica se é checkbox ou radio
+                //criar um array com as respostas corretas
+                var qtd_opt = 0;
+                var pt = 0;
+                var arr_gabarito = opcaoCorreta.split(',');
+                //cria um array com as alternativas marcadas
+                var opcaoSelecionada = $("#" + questao + " form input[name='opcao']:checked").each(function () {
+                    arr_escolhas.push($(this).val());
+                });
+
+                //para cada alternativa existente, verifica se foi marcada e se é resposta certa
+                var opcoes = $("#" + questao + " form input[name='opcao']").each(function () {
+                    qtd_opt++;
+                    var valOption = $(this).val();
+                    if (arr_escolhas.indexOf(valOption) >= 0) {
+                        if (arr_gabarito.indexOf(valOption) >= 0) {
+                            $(this).next("label").addClass("correta");
+                            pt++;
+                        } else {
+                            $(this).next("label").addClass("incorreta");
+                        }
+                    } else {
+                        if (arr_gabarito.indexOf(valOption) >= 0) {
+                            $(this).next("label").addClass("incorreta");
+                        } else {
+                            $(this).next("label").addClass("correta");
+                            pt++;
+                        }
+
+                    }
+                });
+                var percent = pt / qtd_opt;
+                pontuacao = pontuacao + percent;
+                console.log(pontuacao);
+                exibirFeedback(questao, opcaoSelecionada);
+            } else {
+                // Trata a resposta do radio button
+                var opcaoSelecionada = $("#" + questao + " form input[name='opcao']:checked").val();
+                if (!opcaoSelecionada) { //se não houver opção selecionada, exibir aviso para selecionar uma opção
+                    $("#selecione-opcao").slideDown("slow").delay(3000).slideUp("slow");
+                    $("#selecione-opcao").css('top', $("#" + questao + "verificar").position().top - 50);
+                } else if (opcaoSelecionada != opcaoCorreta) { //se opção selecionada for incorreta, exibir aviso do erro e mostrar feedback
+                    $("#" + questao + " form input[name='opcao']:checked+label").addClass("incorreta");
+                    $("#" + questao + " form input[name='opcao']:checked+label+div").addClass("incorreta").show('slow');
+                    $(".me_feedback.incorreta").css('top', $("#" + questao + "verificar").position().top - 200);
+                    exibirFeedback(questao, opcaoSelecionada);
+                } else if (opcaoSelecionada == opcaoCorreta) {
+                    //se opção selecionada for a correta, exibir aviso de acerto e mostrar feedback
+                    $("#" + questao + " form input[name='opcao']:checked+label").addClass("correta");
+                    $("#" + questao + " form input[name='opcao']:checked+label+div").addClass("correta").show('slow');
+
+                    if ($("#" + questao + " .feedback").children("div").length == 1) {
+                        $("#" + questao + " .feedback div").addClass("correta");
+                    } else {
+                        $("#fb-" + questao + "-" + opcaoCorreta).addClass("correta");
+                    }
+                    $(".me_feedback.correta").css('top', $("#" + questao + "verificar").position().top - 200);
+                    pontuacao++;
+                    console.log(pontuacao);
+                    exibirFeedback(questao, opcaoSelecionada);
+                }
+            }
+
+
+
+
+        }
+
+        function exibirFeedback(questao, opcaoSelecionada) {
+            var feedback = $("#" + questao + " .me_feedback");
+            if ($(feedback).children("div").length > 1) {
+                $(feedback).children("div").hide();
+                $(feedback).children("div").eq(opcaoSelecionada).slideDown("slow");
+            } else {
+                $("#" + questao + " .feedback div").slideDown("slow");
+            }
+            $("#" + questao + " form input[name='opcao']").prop("disabled", true);
+            $("#" + questao + "verificar").hide();
+            if (questaoAtual < total - 1) {
+                $("#" + questao).append('<input type="button" value="Próxima questão &#10148;" id="' + questao + 'proxima">');
+                $("#" + questao + "proxima").click(function () {
+                    proximaQuestao();
+                });
+            } else {
+                $("#" + questao).append('<input type="button" value="Ver pontuação &#10148;" id="finalizar">');
+                $("#finalizar").click(function () {
+                    finalizar();
+                })
+            }
+        }
+
+        function exibirFeedback_ftb(questao) {
+            $("#" + questao + "verificar").hide();
+            if (questaoAtual < total - 1) {
+                $("#" + questao).append('<input type="button" value="Próxima questão &#10148;" id="' + questao + 'proxima">');
+                $("#" + questao + "proxima").click(function () {
+                    proximaQuestao();
+                });
+            } else {
+                $("#" + questao).append('<input type="button" value="Ver pontuação &#10148;" id="finalizar">');
+                $("#finalizar").click(function () {
+                    finalizar();
+                })
+            }
+            console.log(pontuacao);
+        }
+
+        function proximaQuestao() {
+            $("#q" + questaoAtual).slideUp("slow");
+            questaoAtual++;
+            $("#q" + questaoAtual).slideDown("slow");
+        }
+
+        function finalizar() {
+            var elements = parent.document.getElementsByClassName("nav-telas-proxima");
+            for (var i = 0, length = elements.length; i < length; i++) {
+                elements[i].style.display = 'block';
+            }
+            var rendimento = Math.round(pontuacao / total * 100);
+            $("#q" + questaoAtual).slideUp("slow");
+            // if(rendimento<40){
+            //     var greetings='<span class="bad">Por que não tenta rever este material e fazer o exercicio novamente?</span>';
+            //     var rank='bad';
+            // }else if(rendimento<70){
+            //     var greetings='<span class="med">Você ficou na média. Quer tentar denovo?</span>';
+            //     var rank='med';
+            // }else{
+            //     var greetings='<span class="great">Voce acertou quase tudo! Muito bem!</span>';
+            //     var rank='great';
+            // }
+            if (pontuacao == 0) {
+                var greetings = '';
+                var feed_text = '<span class="bad">Estude um pouco mais o conteúdo do curso e refaça a avaliação quando se sentir preparado(a).</span>';
+                var rank = 'bad';
+            } else if (pontuacao == 1) {
+                var greetings = '';
+                var feed_text = '<span class="med">Estude um pouco mais o conteúdo do curso e refaça a avaliação quando se sentir preparado(a).</span>';
+                var rank = 'med';
+            } else if (pontuacao == 2) {
+                var greetings = '<span class="great">Parabéns!</span> <br>';
+                var feed_text = '<span class="great"></span>';
+                var rank = 'great';
+            } else {
+                var greetings = '<span class="great">Parabéns! </span><br>';
+                var feed_text = '<span class="great"></span>';
+                var rank = 'great';
+            }
+
+            var texto = greetings + "De um total de " + total + " questões, você acertou " + pontuacao + ".<br>" + feed_text;
+            $("#texto-rendimento").html(texto);
+            // $("#percentual").text(rendimento + "%");
+            $("#resultados").slideDown("slow");
+        }
+    </script>
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        body {
+            font-size: 11px;
+            overflow: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Poppins', sans-serif;
+            border: none 0px transparent;
+        }
+
+        h1 {
+            color: #004D73;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        h2 {
+            font-size: 18px;
+            color: #004D73;
+        }
+
+        h3 {
+            color: #a80d6d;
+            font-size: 24px;
+        }
+
+        p {
+            font-size: 11px;
+        }
+
+        form {
+            counter-reset: opcoes;
+        }
+
+        input[type="radio"]+label::before,
+        input[type="checkbox"]+label::before {
+            counter-increment: opcoes;
+            content: counter(opcoes, lower-alpha) ") ";
+            /* font-weight: bold; */
+        }
+
+        input[type="button"] {
+            margin: 1em auto;
+            font-weight: bold;
+            color: #ffffff;
+            border-radius: 3px;
+            background-color: #836bff;
+            border: solid 0 transparent;
+            outline: none;
+            box-shadow: 0 .1em rgba(0, 0, 0, .5);
+            padding: .5em;
+            display: block;
+            width: 50%;
+            cursor: pointer;
+        }
+
+        input[type="button"]:hover {
+            background-color: #4e1302;
+        }
+
+        input[type="button"]:active {
+            background-color: #836bff;
+        }
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            display: none;
+        }
+
+        input[type="radio"]+label,
+        input[type="checkbox"]+label {
+            cursor: pointer;
+            padding-left: .2em;
+            padding-right: .2em;
+            border-radius: .2em;
+            text-align: left;
+            display: list-item;
+            margin-bottom: .2em;
+            list-style: lower-alpha;
+            border: .1em solid rgba(34, 34, 34, 0);
+        }
+
+        input[type="radio"]+label:hover,
+        input[type="checkbox"]+label:hover {
+            background-color: #fac900;
+            color: red;
+        }
+
+        input[type="radio"]:disabled+label:hover,
+        input[type="checkbox"]:disabled+label:hover {
+            background-color: transparent;
+            cursor: text;
+        }
+
+        input[type="radio"]:checked+label,
+        input[type="checkbox"]:checked+label {
+            background-color: #fac900;
+            color: red;
+        }
+
+        input[type="radio"]+label.correta,
+        input[type="radio"]+label.correta:hover,
+        input[type="checkbox"]+label.correta,
+        input[type="checkbox"]+label.correta:hover {
+            background-color: #836bff;
+            color: #ffffff;
+            border: .1em solid rgba(34, 34, 34, 0);
+        }
+
+        input[type="radio"]+label.incorreta,
+        input[type="checkbox"]+label.incorreta:hover {
+            background-color: #836bff;
+            border: .1em solid rgba(34, 34, 34, 0);
+        }
+
+        .feedback>div,
+        .me_feedback,
+        #selecione-opcao {
+            margin: 1em auto;
+            color: #222222;
+            border-radius: 15px;
+            background-color: #836bff;
+            border: solid 0 transparent;
+            box-shadow: 0 .1em rgba(0, 0, 0, .5);
+            padding: 12px 18px;
+            display: block;
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            text-align: justify;
+        }
+
+
+        .feedback>div::before,
+        .me_feedback::before,
+        #selecione-opcao::before {
+            content: "Resposta incorreta.";
+            display: block;
+            margin: 26px 0 13px 10px;
+            color: #004D73;
+            font-size: 14px;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        #selecione-opcao p {
+            text-align: center;
+        }
+
+        #selecione-opcao::before {
+            content: "Nenhuma alternativa foi selecionada.";
+            text-align: center;
+            margin: 26px 0 13px 10px;
+        }
+
+        .feedback>div.correta,
+        .me_feedback.correta {
+            background-color: #836bff;
+        }
+
+        .feedback>div.correta::before,
+        .me_feedback.correta::before {
+            content: "Resposta correta.";
+            color: #004D73;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .img-logo {
+            display: flex;
+            width: 73px;
+            height: 57px;
+            margin: -109px 0 52px 0;
+        }
+
+        .fechar-feedback {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            cursor: pointer;
+            font-size: 2em;
+            font-weight: bold;
+            line-height: 11px;
+        }
+
+        .botao {
+            background-color: #836bff;
+            color: #fff;
+            border-radius: 3px;
+            display: inline-block;
+            padding: 0 3px;
+        }
+
+        .percentRes {
+            font-size: 28px;
+        }
+
+        .bad {
+            color: red;
+        }
+
+        .med {
+            color: orange;
+        }
+
+        .great {
+            color: green;
+        }
+
+        .vf {
+            border: none;
+            width: 10px;
+            margin-left: 5px;
+            text-transform: uppercase;
+        }
+
+        .vf:focus {
+            box-shadow: 0 0 0 0;
+            border: 0 none;
+            outline: 0;
+        }
+
+        .vf_correta {
+            display: inline-block;
+            position: relative;
+            padding: 3px;
+            border-radius: 0.25rem;
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .vf_incorreta {
+            display: inline-block;
+            position: relative;
+            padding: 3px;
+            border: 1px solid rgb(245, 198, 203);
+            border-radius: 0.25rem;
+            color: rgb(114, 28, 36);
+            background-color: rgb(248, 215, 218);
+        }
+
+        td {
+            padding: 3px;
+            border: 0px 1px solid #ddd;
+            font-size: 10px;
+        }
+
+        table {
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+
+<body class="">
+    <!-- Questão 1 -->
+    <section>
+        <div class="enunciado">
+            <p><strong>Relacione as colunas quanto ao funcionamento previsto (em horas de trabalho) para
+                    a oferta de serviços de saúde prisional de acordo com o quantitativo de custodiados.</strong>
+            </p>
+            <img style="margin-top: 10px;margin-left: 30px;width: 436px;" src="recursos/imgs/SI_tabela.png">
+         
+        </div>
+        <form style="font-size: 10px;">
+            <input type="radio" name="opcao" value="0">
+            <label>I – II – III;</label>
+            <div class="me_feedback" style="display: block;top: 80px;width: 462px;"><img class="img-logo"
+                    src="recursos/imgs/SI_CE.png">Na verdade, a sequência correta não
+                é essa. Vamos conferir? De acordo com a Portaria GM/MS nº 2.298/2021, ao
+                considerar a população prisional e o funcionamento dos serviços de saúde, o MS classifica os
+                estabelecimentos
+                prisionais, em três faixas, a saber:
+                I - unidades prisionais que contenham até 300 (trezentos) custodiados: serviço de saúde com
+                funcionamento mínimo
+                de 6 (seis) horas semanais, sob responsabilidade do ente municipal, por meio de eAPP;
+                II - unidades prisionais que contenham de 101 (cento e um) a 1.700 (mil e setecentos) custodiados:
+                serviço de saúde
+                com funcionamento mínimo de 20 (vinte) horas semanais, sob responsabilidade do ente estadual ou
+                municipal, por
+                meio de eAPP Essencial ou Ampliada;
+                III - unidades prisionais que contenham de 1.201 (mil duzentos e um) a 2.700 (dois mil e setecentos)
+                custodiados:
+                serviço de saúde com funcionamento mínimo de 30 (trinta) horas semanais, sob responsabilidade do estado
+                ou
+                município, por meio de eAPP Essencial ou Ampliada podendo esta ser complementada.</div>
+            <input type="radio" name="opcao" value="1">
+            <label>I – III – II;</label>
+            <div class="me_feedback" style="display: block;top: 80px;width: 462px;"><img class="img-logo"
+                    src="recursos/imgs/SI_CE.png">Parabéns! De acordo com com a
+                Portaria GM/MS nº 2.298/2021, ao considerar a população prisional e o
+                funcionamento dos serviços de saúde, o MS classifica os estabelecimentos prisionais, em três faixas, a
+                saber:
+                I - unidades prisionais que contenham até 300 (trezentos) custodiados: serviço de saúde com
+                funcionamento
+                mínimo de 6 (seis) horas semanais, sob responsabilidade do ente municipal, por meio de eAPP;
+                II - unidades prisionais que contenham de 101 (cento e um) a 1.700 (mil e setecentos) custodiados:
+                serviço de
+                saúde com funcionamento mínimo de 20 (vinte) horas semanais, sob responsabilidade do ente estadual ou
+                municipal, por meio de eAPP Essencial ou Ampliada;
+                III - unidades prisionais que contenham de 1.201 (mil duzentos e um) a 2.700 (dois mil e setecentos)
+                custodiados:
+                serviço de saúde com funcionamento mínimo de 30 (trinta) horas semanais, sob responsabilidade do estado
+                ou
+                município, por meio de eAPP Essencial ou Ampliada podendo esta ser complementada.</div>
+            <input type="radio" name="opcao" value="2">
+            <label>III – II – I;</label>
+            <div class="me_feedback" style="display: block;top: 80px;width: 462px;"><img class="img-logo"
+                    src="recursos/imgs/SI_CE.png">Na verdade, a sequência correta não
+                é essa. Vamos conferir? De acordo com a Portaria GM/MS nº 2.298/2021, ao
+                considerar a população prisional e o funcionamento dos serviços de saúde, o MS classifica os
+                estabelecimentos
+                prisionais, em três faixas, a saber:
+                I - unidades prisionais que contenham até 300 (trezentos) custodiados: serviço de saúde com
+                funcionamento mínimo
+                de 6 (seis) horas semanais, sob responsabilidade do ente municipal, por meio de eAPP;
+                II - unidades prisionais que contenham de 101 (cento e um) a 1.700 (mil e setecentos) custodiados:
+                serviço de saúde
+                com funcionamento mínimo de 20 (vinte) horas semanais, sob responsabilidade do ente estadual ou
+                municipal, por
+                meio de eAPP Essencial ou Ampliada;
+                III - unidades prisionais que contenham de 1.201 (mil duzentos e um) a 2.700 (dois mil e setecentos)
+                custodiados:
+                serviço de saúde com funcionamento mínimo de 30 (trinta) horas semanais, sob responsabilidade do estado
+                ou
+                município, por meio de eAPP Essencial ou Ampliada podendo esta ser complementada.</div>
+
+            <input type="hidden" name="resposta" value="1">
+            <input type="button" value="Verificar resposta">
+        </form>
+    </section>
+
+    <!-- Questao 2 -->
+    <section style="margin-top: 145px;">
+        <div class="enunciado">
+            <p><strong>As categorias de dentistas e médicos clínicos apresentam um maior
+                    quantitativo referente aos trabalhadores de saúde no sistema prisional.</strong>
+            </p>
+            <p>
+        </div>
+        <form>
+            <input type="radio" name="opcao" value="0">
+            <label>Verdadeiro</label>
+            <div class="me_feedback"> <img class="img-logo" src="recursos/imgs/SI_CE.png">De fato, a afirmativa está
+                incorreta! Auxiliar e técnicos de enfermagem (2.603), seguidos de
+                enfermeiro (1.534) e psicólogo (1.207), apresentam um maior quantitativo em relação aos
+                trabalhadores de saúde nas unidades prisionais do Brasil, segundo dados do Infopen de 2020.</div>
+            <input type="radio" name="opcao" value="1">
+            <label>Falso</label>
+            <div class="me_feedback"> <img class="img-logo" src="recursos/imgs/SI_CE.png">Você acertou! Auxiliar e
+                técnicos de enfermagem (2.603), seguidos de enfermeiro (1.534)
+                e psicólogo (1.207), apresentam um maior quantitativo em relação aos trabalhadores de
+                saúde nas unidades prisionais do Brasil, segundo dados do Infopen de 2020.</div>
+
+            <input type="hidden" name="resposta" value="1">
+            <input type="button" value="Submeter">
+        </form>
+        </div>
+
+    </section>
+
+    <!-- Questão 3 -->
+    <section style="width: 540px;">
+        <div class="enunciado">
+            <p><strong>Quem compõe o Comitê de Especialistas em Saúde Prisional, de acordo com o
+                    art. 2º, da Portaria nº 2.613/2012?</strong>
+            </p>
+            <p>
+        </div>
+        <form>
+            <input type="radio" name="opcao" value="0">
+            <label>O Comitê de Especialistas em Saúde Prisional será composto de membros que
+                representam os segmentos do poder público, da comunidade científica e da sociedade,
+                oriundos de instituições públicas e privadas envolvidas em atividades de pesquisa.</label>
+            <div class="me_feedback"> <img class="img-logo" src="recursos/imgs/SI_CE.png">Parabéns! De acordo com o art.
+                2º, da Portaria nº 2.613/2012, “o Comitê de Especialistas
+                em Saúde Prisional será composto por membros que representam os segmentos do
+                poder público, da comunidade científica e da sociedade, oriundos de instituições
+                públicas e privadas envolvidas em atividades de pesquisa”.</div>
+            <input type="radio" name="opcao" value="1">
+            <label>O Comitê de Especialistas em Saúde Prisional será composto de membros que
+                representam empresários do ramo da segurança pública, da comunidade científica e
+                da sociedade, oriundos de instituições públicas e privadas envolvidas em atividades de
+                pesquisa.</label>
+            <div class="me_feedback"> <img class="img-logo" src="recursos/imgs/SI_CE.png">De acordo com o art. 2º, da
+                Portaria nº 2.613/2012, “o Comitê de Especialistas em Saúde Prisional será
+                composto por membros que representam os segmentos do poder público, da comunidade científica e
+                da sociedade, oriundos de instituições públicas e privadas envolvidas em atividades de pesquisa”.
+                Então, apenas a alternativa “a” está correta.</div>
+            <input type="radio" name="opcao" value="3">
+            <label>O Comitê de Especialistas em Saúde Prisional será composto de membros que
+                representam os segmentos do poder público, da comunidade científica e da sociedade,
+                oriundos de instituições públicas e privadas envolvidas em atividades de ensino e
+                extensão.</label>
+            <div class="me_feedback"> <img class="img-logo" src="recursos/imgs/SI_CE.png">De acordo com o art. 2º, da
+                Portaria nº
+                2.613/2012, “o Comitê de Especialistas em Saúde Prisional será
+                composto por membros que representam os segmentos do poder público, da comunidade científica e
+                da sociedade, oriundos de instituições públicas e privadas envolvidas em atividades de pesquisa”.
+                Então, apenas a alternativa “a” está correta.</div>
+            <input type="radio" name="opcao" value="4">
+            <label>O Comitê de Especialistas em Saúde Prisional será composto de 29 membros que
+                representam os segmentos do poder público, da comunidade científica e da sociedade,
+                oriundos de instituições públicas e privadas envolvidas em atividades de pesquisa.</label>
+            <div class="me_feedback"> <img class="img-logo" src="recursos/imgs/SI_CE.png">De acordo com o art. 2º, da
+                Portaria nº
+                2.613/2012, “o Comitê de Especialistas em Saúde Prisional será
+                composto por membros que representam os segmentos do poder público, da comunidade científica e
+                da sociedade, oriundos de instituições públicas e privadas envolvidas em atividades de pesquisa”.
+                Então, apenas a alternativa “a” está correta.</div>
+            <input type="radio" name="opcao" value="4">
+            <label>O Comitê de Especialistas em Saúde Prisional será composto de pessoas da
+                sociedade civil que simpatizem com atividades de pesquisa.</label>
+            <div class="me_feedback"> <img class="img-logo" src="recursos/imgs/SI_CE.png">De acordo com o art. 2º, da
+                Portaria nº
+                2.613/2012, “o Comitê de Especialistas em Saúde Prisional será
+                composto por membros que representam os segmentos do poder público, da comunidade científica e
+                da sociedade, oriundos de instituições públicas e privadas envolvidas em atividades de pesquisa”.
+                Então, apenas a alternativa “a” está correta.</div>
+            <input type="hidden" name="resposta" value="0">
+            <input type="button" value="Submeter">
+        </form>
+        </div>
+
+    </section>
+
+
+    <section id="resultados">
+        <h2>Rendimento</h2>
+        <p id="texto-rendimento"></p>
+        <p id="percentual"></p>
+        <p id="tente-novamente">Você pode refazer este exercício quantas vezes quiser.</p>
+        <input type="button" id="refazer-exercicio" value="Refazer exercício.">
+    </section>
+    <div id="selecione-opcao">
+        <p>Selecione uma alternativa e em seguida clique em
+            <span class="botao">Submeter</span>.
+        </p>
+    </div>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+</body>
+
+</html>
