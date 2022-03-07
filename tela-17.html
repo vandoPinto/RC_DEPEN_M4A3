@@ -10,8 +10,8 @@
     <img id="botao_1" style="margin-top: 40px;margin-left: 80px;width: 310px; cursor: pointer;"
         src="recursos/imgs/SI_17.png">
     <div id="janela_1"
-        style="width: 890px;background-color: white;height: 340px;padding-top: 5px;border-radius: 10px;padding-left: 10px;padding-right: 10px;margin-left: -50px;top: 10px;position: absolute;">
-        <img style="margin-top: 20px;margin-left: 310px;width: 330px;" src="recursos/imgs/SI_17.png">
+        style="width: 890px; background-color: white; height: 340px; padding-top: 5px; border-radius: 10px; padding-left: 10px; padding-right: 10px; margin-left: -50px; top: 10px; position: absolute; cursor: pointer;">
+        <img style="margin-top: -12px;margin-left: 260px;width: 400px;" src="recursos/imgs/SI_17.png">
     </div>
 </div>
 <div class="coluna-direita largura-2_3">
@@ -23,7 +23,8 @@
             querido. Claro que
             esses motivos podem nos deixar tristes. Mas como saber diferenciar a tristeza da depressão?
         </p>
-        <p><b style="color: #836bff;">Clique</b> na imagem para ampliá-la e conhecer os aspectos diferenciadores entre
+        <p><b style="color: #836bff;">Clique</b> na imagem para ampliá-la e conhecer os aspectos diferenciadores
+            entre
             depressão e tristeza.
         </p>
     </div>
@@ -34,27 +35,14 @@
 </footer>
 <script>
     $(() => {
-        let janelas = $(document).find('[id^=janela]');
-        console.log(janelas);
+        let janelas = $(document).find('[id^=janela]').css('cursor', 'pointer').on("click", apagarJanelas);
         apagarJanelas();
         let botoes = $(document).find('[id^=botao]').map((index, botao) => {
             $(botao).click(() => {
                 apagarJanelas();
-                //mudarBotao(index + 1)
-                $(janelas[index]).show();
+                $(janelas[index]).fadeIn();
             })
         })
-
-        function mudarBotao(numero) {
-            console.log($(document).find(`[id^=botao_${numero}]`));
-            $(document).find('[id^=botao]').map((index, botao) => {
-                $(document).find(`[id^=botao_${index + 1}]`).css("background-color", "#004c72");
-                $(document).find(`[id^=texto_${index + 1}]`).css("color", "#fac900");
-            })
-            $(document).find(`[id^=botao_${numero}]`).css("background-color", "#fac900");
-            $(document).find(`[id^=texto_${numero}]`).css("color", "#004c72");
-        }
-
         function apagarJanelas() {
             janelas.map((index, janela) => {
                 $(janela).hide();
